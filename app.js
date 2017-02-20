@@ -2,6 +2,7 @@ var http = require('http');
 var fs = require('fs');
 var url = require('url');
 var path = require('path');
+var rootPath = './file';
 var PORT = 9000;
 //添加MIME类型
 var MIME_TYPE = {
@@ -27,13 +28,12 @@ var MIME_TYPE = {
 
 var server = http.createServer(serverStatic);
 
+
+
 function serverStatic(req, res) {
     var filePath;
-    if (req.url === "/") {
-        filePath = "index.html";
-    } else {
-        filePath = "./www/" + url.parse(req.url).pathname;
-    }
+
+    filePath = rootPath + url.parse(req.url).pathname;
 
     fs.exists(filePath, function(err) {
             if (!err) {
@@ -42,13 +42,21 @@ function serverStatic(req, res) {
                 var ext = path.extname(filePath);
                 ext = ext ? ext.slice(1) : 'unknown';
                 var contentType = MIME_TYPE[ext] || "text/plain";
+
                 fs.readFile(filePath, function(err, data) {
+
                     if (err) {
                         res.end("<h1>500</h1>服务器内部错误！");
                     } else {
                         res.writeHead(200, { 'content-type': contentType });
-                        res.end(data.toString());
+
+                        if (ext === 'png' || ext === 'jpg' || ext === 'jpeg') {
+                            res.end(data);
+                        } else {
+                            res.end(data.toString());
+                        }
                     }
+
                 }); //fs.readfile
             }
         }) //path.exists
